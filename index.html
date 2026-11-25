@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kawaii Dino Phonics World</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;font-family:"Trebuchet MS",Arial,sans-serif;
+ background:linear-gradient(135deg,#fff0f7,#e9f8ff,#f2ffe9);
+ color:#594b68;text-align:center
+}
+header{padding:20px 10px;background:#ffcde3}
+h1{margin:5px;color:#87558d;font-size:29px}
+h2{color:#9564a5}
+.page{display:none;padding:18px;max-width:950px;margin:auto}
+.page.active{display:block}
+.panel{
+ background:white;border:3px solid #f6cce7;border-radius:25px;
+ padding:20px;margin:16px auto;box-shadow:0 5px 12px #e9cde5
+}
+button,select{
+ border:0;border-radius:18px;padding:12px 17px;font-size:16px;
+ font-weight:bold;cursor:pointer;background:#ffc5df;color:#704c77;margin:6px
+}
+button:hover{transform:scale(1.04)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.purple{background:#d9c5ff}
+.green{background:#c9f2d3}
+.blue{background:#c8eaff}
+.yellow{background:#fff0a9}
+input[type=text]{
+ padding:14px;border:2px solid #f4cce5;border-radius:15px;
+ font-size:18px;width:90%;max-width:350px
+}
+.progress{height:16px;background:#eee;border-radius:20px;overflow:hidden}
+.bar{height:100%;width:0;background:#a9e8bd;transition:.3s}
+#question{font-size:24px;color:#76518b;margin:20px 0}
+#target{font-size:38px;color:#e77cae;font-weight:bold;margin:15px}
+#feedback{font-size:19px;min-height:32px;font-weight:bold}
+.dinoGrid{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+ gap:12px;margin-top:20px
+}
+.dinoCard{
+ background:#fff4fa;border:2px solid #f4d0e8;
+ border-radius:18px;padding:10px;min-height:145px
+}
+.dinoCard svg{width:100%;max-width:125px;height:100px}
+.locked svg{filter:grayscale(1);opacity:.35}
+.dinoName{font-weight:bold;color:#87558d}
+.dinoType{font-size:12px;color:#9b8ca1}
+.small{font-size:13px;color:#8b7b91}
+.hidden{display:none!important}
+nav{margin:12px}
+footer{padding:20px;color:#9b8ca1;font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🌸 Kawaii Dino Phonics World 🦕</h1>
+<div>Speak, write, learn and collect cute dinosaurs!</div>
+<nav>
+<button onclick="showPage('home')">🏠 Home</button>
+<button onclick="showPage('game')">🎤 Speaking</button>
+<button onclick="showPage('writing')">✏️ Writing</button>
+<button onclick="showPage('collection')">🦖 Collection</button>
+</nav>
+</header>
+
+<!-- HOME PAGE -->
+<section id="home" class="page active">
+<div class="panel">
+<h2>Welcome, Little Dino Explorer! 🌈</h2>
+<p>Choose your age group to begin.</p>
+<select id="age">
+<option value="young">Ages 3–5</option>
+<option value="middle">Ages 6–8</option>
+<option value="older">Ages 9–12</option>
+<option value="teen">Ages 13–17</option>
+</select>
+<br>
+<button class="green" onclick="startGame()">Start Daily Exercise! ✨</button>
+</div>
+
+<div class="panel">
+<h2>⭐ Your Adventure</h2>
+<div id="homeStars">0 ⭐</div>
+<p id="homeDinos">0 / 20 dinosaurs collected</p>
+<div class="progress"><div class="bar" id="homeBar"></div></div>
+<p id="milestoneText">20 stars unlock a dinosaur!</p>
+</div>
+
+<div class="panel">
+<h2>🎀 How to Play</h2>
+<p>🎤 Answer 10 mixed speaking questions.</p>
+<p>✏️ Practise spelling in Writing School.</p>
+<p>⭐ Earn stars and unlock dinosaurs.</p>
+<p>🦕 Collect all 20 dinosaurs!</p>
+</div>
+</section>
+
+<!-- SPEAKING PAGE -->
+<section id="game" class="page">
+<div class="panel">
+<h2>🎤 Daily Dino Challenge</h2>
+<p id="questionNumber">Question 1 of 10</p>
+<div class="progress"><div class="bar" id="gameBar"></div></div>
+<p id="question">Get ready!</p>
+<div id="target">🦕</div>
+<button class="blue" onclick="speakQuestion()">🔊 Hear Question</button>
+<br>
+<button class="green" id="micButton" onclick="listen()">🎤 Speak Now!</button>
+<p id="micStatus" class="small">Press the microphone to answer.</p>
+<div id="feedback"></div>
+<p id="liveScore">Correct answers: 0</p>
+<button id="retryButton" class="yellow hidden" onclick="listen()">Try Again 🔁</button>
+<button id="nextButton" class="purple hidden" onclick="nextQuestion()">Next Question ➜</button>
+</div>
+</section>
+
+<!-- RESULT PAGE -->
+<section id="result" class="page">
+<div class="panel">
+<h2>🎉 Daily Challenge Complete!</h2>
+<div id="resultScore" style="font-size:28px"></div>
+<div id="resultStars" style="font-size:35px"></div>
+<div id="rewardMessage"></div>
+<div id="rewardDino"></div>
+<button class="green" onclick="showPage('home')">Home 🏠</button>
+<button class="purple" onclick="showPage('collection')">My Dinosaurs 🦖</button>
+</div>
+</section>
+
+<!-- WRITING PAGE -->
+<section id="writing" class="page">
+<div class="panel">
+<h2>✏️ Kawaii Dino Writing School</h2>
+<p>Choose your age group and practise spelling!</p>
+<select id="writingAge">
+<option value="young">Ages 3–5</option>
+<option value="middle">Ages 6–8</option>
+<option value="older">Ages 9–12</option>
+<option value="teen">Ages 13–17</option>
+</select>
+<br>
+<button class="green" onclick="startWriting()">Start Writing 🌷</button>
+<h2 id="writingClue">Ready?</h2>
+<p id="writingNumber">Question 0 of 10</p>
+<input id="writingAnswer" type="text" placeholder="Type your word here..." autocomplete="off">
+<br>
+<button class="blue" onclick="checkWriting()">Check My Spelling 💗</button>
+<button class="purple" onclick="nextWriting()">Next Word ➜</button>
+<p id="writingFeedback"></p>
+<p id="writingScore">Correct: 0</p>
+</div>
+</section>
+
+<!-- COLLECTION PAGE -->
+<section id="collection" class="page">
+<div class="panel">
+<h2>🦕 My Kawaii Dinosaur Collection</h2>
+<p id="collectionCount">0 / 20 unlocked</p>
+<div class="dinoGrid" id="dinoGrid"></div>
+</div>
+</section>
+
+<footer>🌷 Kawaii Dino Phonics World · Keep learning and have fun! 🌷</footer>
+
+<script>
+// DINOSAUR COLLECTION: 10 MAGICAL, 7 NORMAL, 3 SILLY
+const dinos=[
+{name:"Rainbow Rex",type:"Magical",color:"#ff9ccf",extra:"#ffe77a"},
+{name:"Unicorn Dino",type:"Magical",color:"#c6a7ff",extra:"#fff"},
+{name:"Moonlight Dino",type:"Magical",color:"#8eb8ff",extra:"#fff1a8"},
+{name:"Fairy Dino",type:"Magical",color:"#ffb6dc",extra:"#b7f4d0"},
+{name:"Crystal Dino",type:"Magical",color:"#8fe2e5",extra:"#fff"},
+{name:"Blossom Dino",type:"Magical",color:"#ffa9ba",extra:"#ffe5a0"},
+{name:"Starlight Dino",type:"Magical",color:"#a8a5ff",extra:"#fff2a0"},
+{name:"Ice Princess",type:"Magical",color:"#a8dcff",extra:"#fff"},
+{name:"Flame Spark",type:"Magical",color:"#ffb36c",extra:"#ffe77a"},
+{name:"Ocean Magic",type:"Magical",color:"#76cde8",extra:"#b5f5e6"},
+{name:"Baby Greenie",type:"Normal",color:"#a7e5a2",extra:"#fff"},
+{name:"Tiny T-Rex",type:"Normal",color:"#b9d99b",extra:"#fff"},
+{name:"Peachy Dino",type:"Normal",color:"#ffbfaa",extra:"#fff"},
+{name:"Blueberry Dino",type:"Normal",color:"#a9c9ff",extra:"#fff"},
+{name:"Sunny Dino",type:"Normal",color:"#ffe28a",extra:"#fff"},
+{name:"Mochi Dino",type:"Normal",color:"#e5c5e9",extra:"#fff"},
+{name:"Minty Dino",type:"Normal",color:"#a9e8d0",extra:"#fff"},
+{name:"Grumpy Puff",type:"Silly",color:"#aaa2a8",extra:"#ddd"},
+{name:"Sleepy Stomp",type:"Silly",color:"#a9a1b1",extra:"#eee"},
+{name:"Sour Pickle",type:"Silly",color:"#a5b28b",extra:"#ddd"}
+];
+
+function dinoSVG(d){
+return `<svg viewBox="0 0 150 115" role="img" aria-label="${d.name}">
+<ellipse cx="75" cy="103" rx="39" ry="6" fill="#eaddeb"/>
+<path d="M34 80 Q13 85 15 67 Q25 73 40 63" fill="${d.color}" stroke="#806b87" stroke-width="2"/>
+<path d="M39 80 Q35 50 57 43 Q77 24 101 44 Q119 55 111 83 Q101 99 64 98 Q42 96 39 80" fill="${d.color}" stroke="#806b87" stroke-width="2"/>
+<path d="M51 51 L45 35 L61 43 L67 29 L76 42 L90 29 L96 46" fill="${d.color}" stroke="#806b87" stroke-width="2"/>
+<ellipse cx="89" cy="66" rx="22" ry="19" fill="${d.color}" stroke="#806b87" stroke-width="2"/>
+<circle cx="82" cy="61" r="3.5" fill="#51465c"/>
+<circle cx="101" cy="61" r="3.5" fill="#51465c"/>
+<path d="M88 73 Q94 79 100 73" fill="none" stroke="#806b87" stroke-width="2" stroke-linecap="round"/>
+<ellipse cx="75" cy="77" rx="19" ry="13" fill="${d.extra}" opacity=".65"/>
+<ellipse cx="72" cy="95" rx="9" ry="5" fill="${d.extra}"/>
+<ellipse cx="101" cy="95" rx="9" ry="5" fill="${d.extra}"/>
+<circle cx="71" cy="68" r="4" fill="#ff9bb9" opacity=".7"/>
+<circle cx="109" cy="68" r="4" fill="#ff9bb9" opacity=".7"/>
+<path d="M119 29 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z" fill="${d.extra}"/>
+</svg>`;
+}
+
+// AGE-APPROPRIATE WORD BANKS
+const words={
+young:[
+"cat","bat","sun","dog","pig","cup","hat","map","bed","pen",
+"fox","box","jam","van","leg","web","top","pot","bug","rug",
+"hen","red","lip","fin","hot","mop","bus","nut","zip","mud"
+],
+middle:[
+"ship","shop","fish","chat","chin","thin","that","when","black","clock",
+"train","brain","snail","green","sleep","crash","brush","lunch","stamp","plant",
+"crisp","frog","grin","drum","clap","globe","stone","smile","chest","flame"
+],
+older:[
+"bright","thunder","picture","shampoo","journey","whisper","blanket","crystal","between","sunshine",
+"plastic","complete","capture","treasure","mountain","remember","discovery","fantastic","adventure","different",
+"question","triangle","language","important","celebrate","wonderful","computer","chocolate","calendar","elephant"
+],
+teen:[
+"phonetics","vocabulary","pronunciation","communication","imagination","technology","environment","adventure","character","education",
+"celebration","curiosity","responsible","independent","extraordinary","development","opportunity","conversation","immediately","particularly",
+"knowledge","confidence","appreciate","experiment","expression","recognition","dictionary","literature","attention","understanding"
+]
+};
+
+// WRITING WORDS BY AGE
+const writingWords={
+young:["cat","dog","sun","hat","pig","cup","bed","map","pen","bug","fox","box","hen","red","bus","top","pot","leg","jam","van"],
+middle:["ship","frog","train","brush","flower","rabbit","planet","school","garden","chicken","window","yellow","pencil","basket","dragon","thunder","sunshine","rainbow","rocket","puzzle"],
+older:["adventure","treasure","crystal","mountain","discovery","fantastic","remember","different","celebrate","wonderful","triangle","elephant","important","calendar","chocolate","journey","whisper","picture","language","question"],
+teen:["communication","environment","extraordinary","independent","vocabulary","pronunciation","imagination","technology","responsible","development","opportunity","conversation","confidence","appreciate","experiment","recognition","literature","attention","expression","understanding"]
+};
+
+// MAKE 150 PROMPTS PER AGE GROUP
+// 30 words x 5 question types = 150 prompts.
+function makeQuestionBank(level){
+const bank=words[level];
+let questions=[];
+bank.forEach(word=>{
+ const vowels=[...word].filter(c=>"aeiou".includes(c));
+ const vowel=vowels[Math.floor(vowels.length/2)]||"a";
+ const first=word[0];
+ const last=word[word.length-1];
+
+ questions.push({
+ type:"Pronunciation",word,
+ prompt:"Say this word clearly:",
+ target:word
+ });
+ questions.push({
+ type:"Vowel sounds",word,
+ prompt:`Say the vowel you hear in "${word}":`,
+ target:vowel
+ });
+ questions.push({
+ type:"Beginning sounds",word,
+ prompt:`Say the first letter of "${word}":`,
+ target:first
+ });
+ questions.push({
+ type:"Ending sounds",word,
+ prompt:`Say the last letter of "${word}":`,
+ target:last
+ });
+ questions.push({
+ type:"Phonics",word,
+ prompt:`Read this word aloud. Listen carefully to its letter sounds:`,
+ target:word
+ });
+});
+return questions;
+}
+const questionBanks={
+young:makeQuestionBank("young"),
+middle:makeQuestionBank("middle"),
+older:makeQuestionBank("older"),
+teen:makeQuestionBank("teen")
+};
+
+// SAVED PROGRESS
+let save={stars:0,owned:[],history:[]};
+try{
+const old=JSON.parse(localStorage.getItem("kawaiiDinoSave"));
+if(old)save={...save,...old};
+}catch(e){}
+
+let questions=[],current=0,correct=0,recognition=null;
+let writingList=[],writingIndex=0,writingCorrect=0;
+let answered=false;
+
+function saveData(){
+localStorage.setItem("kawaiiDinoSave",JSON.stringify(save));
+updateHome();
+}
+
+function showPage(id){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+if(id==="collection")renderCollection();
+updateHome();
+}
+
+function updateHome(){
+document.getElementById("homeStars").textContent=save.stars+" ⭐";
+document.getElementById("homeDinos").textContent=
+save.owned.length+" / 20 dinosaurs collected";
+document.getElementById("homeBar").style.width=
+Math.min(100,save.stars/400*100)+"%";
+document.getElementById("milestoneText").textContent=
+(20-save.stars%20)+" more stars until the next dinosaur!";
+}
+
+function shuffle(array){
+return [...array].sort(()=>Math.random()-.5);
+}
+
+// CREATE A MIXED SET: EXACTLY 2 OF EACH TYPE
+function makeDailyQuestions(level){
+const bank=questionBanks[level];
+const types=[
+"Pronunciation","Vowel sounds","Beginning sounds",
+"Ending sounds","Phonics"
+];
+let mixed=[];
+types.forEach(type=>{
+const choices=shuffle(bank.filter(q=>q.type===type)).slice(0,2);
+mixed.push(...choices);
+});
+return shuffle(mixed);
+}
+
+function startGame(){
+const level=document.getElementById("age").value;
+questions=makeDailyQuestions(level);
+current=0;correct=0;answered=false;
+showPage("game");
+displayQuestion();
+}
+
+function displayQuestion(){
+const q=questions[current];
+answered=false;
+document.getElementById("questionNumber").textContent=
+`Question ${current+1} of 10 · ${q.type}`;
+document.getElementById("question").textContent=q.prompt;
+document.getElementById("target").textContent=q.word;
+document.getElementById("feedback").textContent="";
+document.getElementById("liveScore").textContent="Correct answers: "+correct;
+document.getElementById("micStatus").textContent="Press the microphone and answer.";
+document.getElementById("nextButton").classList.add("hidden");
+document.getElementById("retryButton").classList.add("hidden");
+document.getElementById("micButton").disabled=false;
+document.getElementById("gameBar").style.width=(current/10*100)+"%";
+}
+
+function speakQuestion(){
+if(!("speechSynthesis" in window)){
+document.getElementById("micStatus").textContent="Speech playback is not supported.";
+return;
+}
+const q=questions[current];
+const u=new SpeechSynthesisUtterance(q.prompt+" "+q.word);
+u.lang="en-SG";
+speechSynthesis.cancel();
+speechSynthesis.speak(u);
+}
+
+function listen(){
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SpeechRecognition){
+document.getElementById("micStatus").textContent=
+"Please use Google Chrome for microphone recognition.";
+return;
+}
+if(answered)return;
+if(recognition){
+try{recognition.abort()}catch(e){}
+}
+recognition=new SpeechRecognition();
+recognition.lang="en-SG";
+recognition.interimResults=false;
+recognition.maxAlternatives=3;
+document.getElementById("micButton").disabled=true;
+document.getElementById("retryButton").classList.add("hidden");
+document.getElementById("micStatus").textContent="🎤 Listening...";
+recognition.onresult=e=>{
+const spoken=e.results[0][0].transcript.toLowerCase()
+.replace(/[^a-z\s]/g,"").trim();
+checkAnswer(spoken);
+};
+recognition.onerror=()=>{
+document.getElementById("micStatus").textContent=
+"I couldn't hear that. Please try again!";
+document.getElementById("micButton").disabled=false;
+document.getElementById("retryButton").classList.remove("hidden");
+};
+recognition.onend=()=>{
+if(!answered){
+document.getElementById("micButton").disabled=false;
+}
+};
+try{recognition.start()}catch(e){
+document.getElementById("micButton").disabled=false;
+}
+}
+
+function checkAnswer(spoken){
+if(answered)return;
+const expected=questions[current].target.toLowerCase();
+const wordsSpoken=spoken.split(/\s+/);
+const match=wordsSpoken.includes(expected)||spoken===expected;
+if(match){
+correct++;
+answered=true;
+document.getElementById("feedback").textContent="🌟 Correct! Amazing job!";
+document.getElementById("feedback").style.color="#43a879";
+document.getElementById("micStatus").textContent="Great speaking!";
+}else{
+answered=true;
+document.getElementById("feedback").textContent=
+"🌷 Good try! The answer was "+expected+".";
+document.getElementById("feedback").style.color="#d17b9e";
+document.getElementById("micStatus").textContent="Keep practising!";
+}
+document.getElementById("micButton").disabled=true;
+document.getElementById("retryButton").classList.add("hidden");
+document.getElementById("liveScore").textContent="Correct answers: "+correct;
+document.getElementById("nextButton").classList.remove("hidden");
+}
+
+function nextQuestion(){
+if(!answered)return;
+current++;
+if(current>=10)finishGame();
+else displayQuestion();
+}
+
+function finishGame(){
+let stars=correct===10?3:correct===9?2:correct===8?1:0;
+let previousMilestone=Math.floor(save.stars/20);
+save.stars+=stars;
+let newMilestone=Math.floor(save.stars/20);
+let group=correct>=9?"Magical":correct>=6?"Normal":"Silly";
+let message=stars+" star"+(stars===1?"":"s")+" earned!";
+if(stars===0)message="No stars this time. Keep practising! 💗";
+
+document.getElementById("resultScore").textContent=
+`You got ${correct} / 10 correct!`;
+document.getElementById("resultStars").textContent=
+stars? "⭐".repeat(stars):"🌷";
+document.getElementById("rewardDino").innerHTML="";
+
+if(newMilestone>previousMilestone && save.owned.length<20){
+let candidates=dinos.map((d,i)=>({...d,index:i}))
+.filter(d=>d.type===group&&!save.owned.includes(d.index));
+let reward=candidates[0];
+if(!reward){
+reward=dinos.map((d,i)=>({...d,index:i}))
+.find(d=>!save.owned.includes(d.index));
+}
+if(reward){
+save.owned.push(reward.index);
+message+=" You unlocked a "+reward.type+" dinosaur!";
+document.getElementById("rewardDino").innerHTML=
+`<div class="panel">${dinoSVG(reward)}<h2>${reward.name}!</h2>
+<p>${reward.type} Dinosaur 🎀</p></div>`;
+}
+}else{
+message+=" Collect 20 stars to unlock a dinosaur!";
+}
+document.getElementById("rewardMessage").textContent=message;
+save.history.push({correct,stars,date:new Date().toLocaleDateString()});
+saveData();
+document.getElementById("gameBar").style.width="100%";
+showPage("result");
+}
+
+// WRITING PRACTICE
+function startWriting(){
+const level=document.getElementById("writingAge").value;
+writingList=shuffle(writingWords[level]).slice(0,10);
+writingIndex=0;writingCorrect=0;
+showPage("writing");
+displayWriting();
+}
+
+function displayWriting(){
+document.getElementById("writingClue").textContent=
+"Spell this word! 🌷";
+document.getElementById("writingNumber").textContent=
+`Question ${writingIndex+1} of 10`;
+document.getElementById("writingAnswer").value="";
+document.getElementById("writingFeedback").textContent="";
+document.getElementById("writingScore").textContent=
+"Correct: "+writingCorrect;
+}
+
+function checkWriting(){
+const answer=document.getElementById("writingAnswer").value.trim().toLowerCase();
+const expected=writingList[writingIndex];
+if(!answer){
+document.getElementById("writingFeedback").textContent=
+"Type your answer first! 💗";
+return;
+}
+if(answer===expected){
+writingCorrect++;
+document.getElementById("writingFeedback").textContent=
+"🌟 Perfect spelling! Well done!";
+}else{
+document.getElementById("writingFeedback").textContent=
+"💗 Good try! Correct spelling: "+expected;
+}
+document.getElementById("writingScore").textContent=
+"Correct: "+writingCorrect;
+}
+
+function nextWriting(){
+if(writingIndex<9){
+writingIndex++;
+displayWriting();
+}else{
+document.getElementById("writingClue").textContent=
+"🎉 Writing practice complete!";
+document.getElementById("writingNumber").textContent=
+`You spelled ${writingCorrect} out of 10 words correctly!`;
+document.getElementById("writingAnswer").value="";
+document.getElementById("writingFeedback").textContent=
+"Wonderful effort! Keep practising! 🌸";
+}
+}
+
+// DINOSAUR COLLECTION
+function renderCollection(){
+const grid=document.getElementById("dinoGrid");
+grid.innerHTML="";
+dinos.forEach((d,i)=>{
+const unlocked=save.owned.includes(i);
+const card=document.createElement("div");
+card.className="dinoCard"+(unlocked?"":" locked");
+card.innerHTML=`
+${dinoSVG(d)}
+<div class="dinoName">${unlocked?d.name:"???"}</div>
+<div class="dinoType">${unlocked?d.type:"Locked dinosaur"}</div>
+<div class="small">${unlocked?"🌟 Collected!":"🔒 Keep earning stars!"}</div>
+`;
+grid.appendChild(card);
+});
+document.getElementById("collectionCount").textContent=
+save.owned.length+" / 20 dinosaurs unlocked";
+}
+
+updateHome();
+renderCollection();
+</script>
+</body>
+</html>
